@@ -1,90 +1,76 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSigner, useBalance } from "wagmi";
-import { getTokenAmountPerUSDT } from "../utils/Presale";
-import { useBuyToken } from "../hooks/useBuyToken";
-import { ethers } from "ethers";
-import { usdtContractAddress } from "../constants/basic";
+import { minPurchaseUSDT, USDTContractAddress } from "../utils/basic";
 import ConnectWallet from "../components/ConnectWallet";
+import { useBuyMominCoin } from "../hooks/useBuyToken";
+import { formatUnits, parseEther } from "ethers/lib/utils.js";
+import { useRate } from "../hooks/useCoinAmount";
 
 const Presale = () => {
+  const { send: buyMominCoin, state: buyTransactionState } = useBuyMominCoin();
+  const { data: USDTBalance } = useBalance({ address: USDTContractAddress });
   const { data: signer } = useSigner();
-  const staticProvider = new ethers.providers.StaticJsonRpcProvider(
-    "https://bsc-dataseed1.defibit.io"
-  );
+  const rate: number = useRate();
 
-  const floorTokenAmount = 0.01;
-  const [tokenAmountPerUSDT, setTokenAmountPerUSDT] = useState(0);
-  const [USDTAmount, setUSDTAmount] = useState<number>(0);
-  const [tokenAmount, setTokenAmount] = useState<number>(0);
+  const [USDTAmount, setUSDTAmount] = useState<number | undefined>();
   const [USDTStatus, setUSDTStatus] = useState<string>("");
   const [connectStatus, setConnectStatus] = useState<string>("");
 
-  const { send: buyNMDToken, state: buyTransactionState } = useBuyToken();
+  useEffect(() => {
+    if (!Number(USDTBalance?.formatted)) {
+      setUSDTStatus(`USDT Balance is 0, Please fund USDT to your wallet`);
+      return;
+    }
+    if (USDTAmount && USDTAmount < minPurchaseUSDT) {
+      setUSDTStatus(`USDT Amount should be larger than ${minPurchaseUSDT}`);
+      return;
+    }
+    if (
+      USDTAmount &&
+      USDTAmount > Number(formatUnits(Number(USDTBalance?.formatted)))
+    ) {
+      setUSDTStatus(`Over USDT Balance ${USDTBalance?.formatted}`);
+      return;
+    }
+  }, [USDTAmount, USDTBalance]);
 
-  const buyUSDTValueChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    setUSDTAmount(parseFloat(evt.target.value));
-    setTokenAmount(parseFloat(evt.target.value) * tokenAmountPerUSDT);
+  const getCoinAmount = (usdtAmount: number | undefined) => {
+    if (!usdtAmount) return 0;
+    return parseEther(usdtAmount + "").mul(rate);
   };
 
-  const loadBalance = async () => {
-    if (staticProvider) {
-      setTokenAmountPerUSDT(await getTokenAmountPerUSDT(staticProvider));
-    } else {
-      setTokenAmountPerUSDT(0);
-    }
+  const handleUSDTAmount = (e: any) => {
+    setUSDTAmount(Number(e.target.value));
   };
 
-  useEffect(() => {
-    loadBalance();
-  }, [staticProvider]);
-
-  const { data: USDTBalance } = useBalance({ address: usdtContractAddress });
-  console.log("Balance", Number(USDTBalance?.formatted));
-
-  useEffect(() => {
-    if (signer && USDTBalance) {
-      if (Number(USDTBalance?.formatted) < floorTokenAmount) {
-        setUSDTStatus(`USDT Balance is lesser than 10`);
-        return;
-      }
-      if (USDTAmount < floorTokenAmount)
-        setUSDTStatus(`USDT Amount should be over ${floorTokenAmount}`);
-      else setUSDTStatus("");
-    } else {
-      setUSDTStatus("");
-    }
-  }, [USDTAmount]);
-
-  const handleBuyPressed = async () => {
+  const handleBuyMominCoin = async () => {
     if (!signer) {
       setConnectStatus("Connect Wallet!");
       return;
     }
-    if (!USDTAmount || USDTAmount < floorTokenAmount) {
+    if (!USDTAmount || USDTAmount < minPurchaseUSDT) {
       return;
     }
     setConnectStatus("");
-    await buyNMDToken(USDTAmount, signer);
+    await buyMominCoin(USDTAmount, signer);
   };
 
   return (
     <div className="bg-[#0d0d0d] w-full py-5 rounded-lg text-gray-200 font-sans mx-3">
       <div className="border-b border-white p-4 sm:p-5">
-        <h4 className="text-xl sm:text-2xl font-medium">Buy NMD Token</h4>
+        <h4 className="text-xl sm:text-2xl font-medium">Buy MominCoin</h4>
         <p className="text-[12px] sm:text-base">
-          Minimum Purchase {floorTokenAmount} USDT (
-          {floorTokenAmount * tokenAmountPerUSDT} NMD)
+          Minimum Purchase {minPurchaseUSDT} USDT (
+          {Number(getCoinAmount(minPurchaseUSDT))} MOMIN)
         </p>
       </div>
       <div className="p-4 sm:p-5">
         <div className="mb-4 bg-black rounded-lg p-3">
           <p className="py-2 sm:py-3 text-[12px] sm:text-base">
-            Enter USDT Value to purchase:
+            Enter USDT Value to purchase Momin Coin:
           </p>
           <input
-            type="number"
-            placeholder="0"
-            onChange={buyUSDTValueChange}
+            onChange={(e) => handleUSDTAmount(e)}
             value={USDTAmount}
             className="bg-gray-800 py-2 px-3 text-white appearance-none text-[12px] sm:text-base"
           />
@@ -94,17 +80,19 @@ const Presale = () => {
         </div>
         <div className="mb-4 bg-black rounded-lg p-3">
           <p className="text-[12px] sm:text-base">
-            NMD Amount:{" "}
-            <span className="text-[#ff7500]">{tokenAmount || 0} NMD</span>
+            Momin Coin Amount:
+            <span className="text-[#ff7500]">
+              {Number(getCoinAmount(USDTAmount))} MOMIN
+            </span>
           </p>
         </div>
         <div className="flex justify-between">
           <button
             className="py-2 px-4 rounded-md bg-orange-500 hover: text-[12px] sm:text-base cursor-pointer"
-            onClick={handleBuyPressed}
+            onClick={handleBuyMominCoin}
             disabled={buyTransactionState?.status === "Pending"}
           >
-            Buy NMD Token
+            Buy MominCoin
           </button>
           <div className="bg-[#40b126] px-4 py-2 rounded-md hover:bg-[#198726]">
             <ConnectWallet />

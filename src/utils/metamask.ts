@@ -1,5 +1,3 @@
-import { NMDAddress, usdtContractAddress } from "../constants/basic";
-
 export const METAMASK_ERRORS: Record<string, string> = {
   "-32700":
     "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.",
@@ -32,52 +30,4 @@ export const getMetamaskErrorMessage = (error: any) => {
   return "Buy Failed";
 };
 
-export const addUSDTToMetamask = async () => {
-  const tokenSymbol = "USDT";
-  const tokenDecimals = 18;
-  // const tokenImage = "http://placekitten.com/200/300";
 
-  if (window.ethereum) {
-    try {
-      await window.ethereum.request({
-        method: "wallet_watchAsset",
-        params: {
-          type: "ERC20", // Initially only supports ERC20, but eventually more!
-          options: {
-            address: usdtContractAddress, // The address that the token is at.
-            symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
-            decimals: tokenDecimals, // The number of decimals in the token
-            // image: tokenImage, // A string url of the token logo
-          },
-        },
-      });
-    } catch (err) {
-      console.log("Add reverted");
-    }
-  }
-};
-
-export const addNMDToMetamask = async () => {
-  const tokenSymbol = "NMD";
-  const tokenDecimals = 18;
-  // const tokenImage = "http://placekitten.com/200/300";
-
-  if (window.ethereum) {
-    try {
-      await window.ethereum.request({
-        method: "wallet_watchAsset",
-        params: {
-          type: "ERC20", // Initially only supports ERC20, but eventually more!
-          options: {
-            address: NMDAddress, // The address that the token is at.
-            symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
-            decimals: tokenDecimals, // The number of decimals in the token
-            // image: tokenImage, // A string url of the token logo
-          },
-        },
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  }
-};

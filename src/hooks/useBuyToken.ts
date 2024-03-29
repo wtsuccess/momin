@@ -1,33 +1,32 @@
 import { useCallback, useState } from "react";
-import { presaleContractAddress, usdtContractAddress } from "../constants/basic";
 import { Presale__factory, USDT__factory } from "../types";
 import { Signer, ethers } from "ethers";
 import { getMetamaskErrorMessage } from "../utils/metamask";
+import { ICOContractAddress, USDTContractAddress } from "../utils/basic";
 
 interface TransactionStatus {
     status: 'Pending' | 'Failed' | 'Success',
     errMsg?: string
 }
 
-export const useBuyToken = () => {
+export const useBuyMominCoin = () => {
     const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>();
 
     const buyToken = useCallback(async (USDTAmount: number, signer: Signer) => {
         setTransactionStatus({
-          status: 'Pending'  
+            status: 'Pending'
         });
-        const presale = Presale__factory.connect(presaleContractAddress, signer);
+        const presale = Presale__factory.connect(ICOContractAddress, signer);
         try {
-            const usdt = USDT__factory.connect(usdtContractAddress, signer);
-            if ((await usdt.allowance(await signer.getAddress(), presaleContractAddress)).lt(ethers.utils.parseUnits(USDTAmount + "", 18))) {
-                await usdt.approve(presaleContractAddress, ethers.utils.parseEther(USDTAmount + ""));
+            const usdt = USDT__factory.connect(USDTContractAddress, signer);
+            if ((await usdt.allowance(await signer.getAddress(), ICOContractAddress)).lt(ethers.utils.parseUnits(USDTAmount + "", 18))) {
+                await usdt.approve(ICOContractAddress, ethers.utils.parseEther(USDTAmount + ""));
             }
-            await presale.buyTokens(ethers.utils.parseEther(USDTAmount + ""));
+            await presale.buyTokens(await signer.getAddress(), ethers.utils.parseEther(USDTAmount + ""))
             setTransactionStatus({
                 status: 'Success'
             })
-        } catch(err) {
-            console.log("error while buying: ", err);
+        } catch (err) {
             setTransactionStatus({
                 status: 'Failed',
                 errMsg: getMetamaskErrorMessage(err),
@@ -35,5 +34,5 @@ export const useBuyToken = () => {
         }
     }, []);
 
-    return {send: buyToken, state: transactionStatus};
+    return { send: buyToken, state: transactionStatus };
 }

@@ -7,11 +7,16 @@ import reportWebVitals from "./reportWebVitals";
 import { WagmiConfig } from "wagmi";
 
 import { Web3Modal } from "@web3modal/react";
-import { ethereumClient, projectId, wagmiClient } from "./constants/wagmi-config";
+import {
+  ethereumClient,
+  projectId,
+  wagmiClient,
+} from "./utils/wagmi-config";
 
 const walletIds = {
   metamask: "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96",
-  trustWallet: "4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0",
+  trustWallet:
+    "4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0",
 };
 
 const root = ReactDOM.createRoot(
