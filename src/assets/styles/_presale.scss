@@ -1,0 +1,19 @@
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+// .flex.justify-between div button {
+//   background-color: #40b126 !important;
+//   border-radius: 0.25rem;
+//   border-color: #198726;
+// }
+
+// .flex.justify-between div.button:hover {
+//   background-color: #198726;
+// }
