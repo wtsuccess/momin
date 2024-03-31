@@ -39,15 +39,14 @@ const Presale = () => {
     return parseEther(usdtAmount + "").mul(rate);
   };
 
-  const handleUSDTAmount = (e: any) => {
-    setUSDTAmount(Number(e.target.value));
-  };
-
   const handleBuyMominCoin = async () => {
     if (!signer) {
       setConnectStatus("Connect Wallet!");
       return;
     }
+    console.log("USDTAmount", USDTAmount);
+    console.log("minPurchaseUSDT", minPurchaseUSDT);
+    
     if (!USDTAmount || USDTAmount < minPurchaseUSDT) {
       return;
     }
@@ -70,7 +69,7 @@ const Presale = () => {
             Enter USDT Value to purchase Momin Coin:
           </p>
           <input
-            onChange={(e) => handleUSDTAmount(e)}
+            onChange={(e) => setUSDTAmount(Number(e.target.value))}
             value={USDTAmount}
             className="bg-gray-800 py-2 px-3 text-white appearance-none text-[12px] sm:text-base"
           />
